@@ -1,0 +1,7 @@
+flask
+selenium
+screeninfo
+requests
+Flask-CORS
+gunicorn
+qrcode

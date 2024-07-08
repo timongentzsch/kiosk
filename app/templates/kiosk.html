@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Viewer</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: filter 1s;
+        }
+
+        #pdf-container,
+        video {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        #pdf-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 500ms;
+        }
+
+        #pdf-canvas.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pdf-container">
+        <canvas id="pdf-canvas"></canvas>
+    </div>
+    <video id="video-player" loop autoplay muted></video>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        const queryParams = new URLSearchParams(window.location.search);
+        const file = queryParams.get('file');
+        const scale = parseFloat(queryParams.get('scale')) || 4.0;
+        const interval = parseInt(queryParams.get('interval')) || 3000;
+        const speed = parseFloat(queryParams.get('speed')) || 1.0;
+        const NEGATE_DURATION = 10000; // 3 seconds
+        const NEGATE_INTERVAL = 600000; // 10 minutes
+
+        if (file) {
+            const fileExtension = file.split('.').pop().toLowerCase();
+            if (fileExtension === 'pdf') {
+                displayPDF(file, scale, interval);
+            } else if (['mp4', 'webm', 'ogg'].includes(fileExtension)) {
+                displayVideo(file, speed);
+            } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                displayImage(file);
+            } else {
+                alert('Unsupported file type.');
+            }
+        } else {
+            alert('No file specified.');
+        }
+
+        function displayPDF(file, scale, interval) {
+            const canvas = document.getElementById('pdf-canvas');
+            const context = canvas.getContext('2d');
+            document.getElementById('pdf-container').style.display = 'flex';
+
+            pdfjsLib.getDocument(file).promise.then(pdfDoc => {
+                let pageNum = 1;
+
+                function renderPage(num) {
+                    pdfDoc.getPage(num).then(page => {
+                        const viewport = page.getViewport({ scale });
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        const renderTask = page.render({ canvasContext: context, viewport });
+                        renderTask.promise.then(() => {
+                            canvas.classList.add('visible');
+                            if (pdfDoc.numPages > 1) setTimeout(nextPage, interval);
+                        });
+                    });
+                }
+
+                function nextPage() {
+                    pageNum = (pageNum >= pdfDoc.numPages) ? 1 : pageNum + 1;
+                    renderPage(pageNum);
+                }
+
+                renderPage(pageNum);
+            });
+        }
+
+        function displayVideo(file, speed) {
+            const videoPlayer = document.getElementById('video-player');
+            videoPlayer.style.display = 'block';
+            videoPlayer.src = file;
+            videoPlayer.playbackRate = speed;
+            videoPlayer.load();
+        }
+
+        function displayImage(file) {
+            const img = new Image();
+            img.src = file;
+            img.onload = () => {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.cssText = `
+                    background: url(${file}) no-repeat center center;
+                    background-size: contain;
+                    width: 100%;
+                    height: 100%;
+                `;
+                document.body.appendChild(imgContainer);
+            };
+        }
+
+        // Negate colors
+        setInterval(() => {
+            document.body.style.filter = 'invert(1)';
+            setTimeout(() => {
+                document.body.style.filter = 'invert(0)';
+            }, NEGATE_DURATION);
+        }, NEGATE_INTERVAL);
+    </script>
+</body>
+
+</html>

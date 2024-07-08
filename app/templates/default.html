@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewport Dimensions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: gainsboro;
+        }
+
+        .alignment-bar {
+            position: absolute;
+            background-color: slategrey;
+            width: 1vw;
+            height: 10vw;
+        }
+
+        .alignment-bar.horizontal {
+            width: 10vw;
+            height: 1vw;
+        }
+
+        .alignment-bar.upper-left {
+            top: 1px;
+            left: 1px;
+        }
+
+        .alignment-bar.lower-right {
+            bottom: 1px;
+            right: 1px;
+        }
+
+        .alignment-bar.lower-right.vertical {
+            bottom: 1px;
+            right: 1px;
+        }
+
+        .alignment-bar.lower-right.horizontal {
+            bottom: 1px;
+            right: 1px;
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center h-screen">
+    <div class="text-center">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="rgb(156 163 175)" class="bi bi-display">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <path
+                    d="M0 4s0-2 2-2h12s2 0 2 2v6s0 2-2 2h-4c0 .667.083 1.167.25 1.5H11a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1h.75c.167-.333.25-.833.25-1.5H2s-2 0-2-2V4zm1.398-.855a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3H2c-.325 0-.502.078-.602.145z">
+                </path>
+                <text id="display-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="5"
+                    fill="rgb(156, 163, 175)" font-weight="bold">0</text>
+            </g>
+        </svg>
+        <h1 class="text-xl font-bold text-gray-500">Viewport Dimensions</h1>
+        <p id="dimensions" class="text-l font-mono text-gray-500"></p>
+        <h1 class="text-xl font-bold text-gray-500 mt-4">Update content via:</h1>
+        <p id="myIP" class="text-l font-mono text-gray-500">http://{{ my_ip }}:{{ port }}</p>
+
+
+        <div class="alignment-bar vertical upper-left"></div>
+        <div class="alignment-bar horizontal upper-left"></div>
+        <div class="alignment-bar vertical lower-right"></div>
+        <div class="alignment-bar horizontal lower-right"></div>
+    </div>
+    <script>
+        function updateDimensions() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            document.getElementById('dimensions').textContent = `Width: ${width}px, Height: ${height}px`;
+        }
+
+        function getQueryParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function updateDisplayText() {
+            const displayId = getQueryParameter('displayId');
+            if (displayId) {
+                document.getElementById('display-text').textContent = displayId;
+            }
+        }
+
+        window.addEventListener('resize', updateDimensions);
+        window.addEventListener('load', () => {
+            updateDimensions();
+            updateDisplayText();
+        });
+    </script>
+</body>
+
+</html>

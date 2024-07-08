@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewport Dimensions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: gainsboro;
+        }
+
+        #dimensions {
+            font-family: monospace;
+            font-size: 1vw;
+            /* Responsive font size */
+        }
+
+        .icon {
+            width: 6vw;
+            /* Responsive width */
+            height: 6vw;
+            /* Responsive height */
+        }
+
+        .text-title {
+            font-size: 2vw;
+            /* Responsive font size */
+        }
+
+        .text-content {
+            font-size: 1vw;
+            /* Responsive font size */
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center h-screen">
+    <div class="text-center">
+        <h1 class="text-title font-bold text-gray-500">Update Kiosk View</h1>
+        <div class="mt-4">
+            <label for="display-id" class="block text-content text-gray-700">Select Display ID:</label>
+            <select id="display-id" class="mt-2 p-2 border rounded text-gray-700">
+                <option>Loading...</option>
+            </select>
+        </div>
+        <div class="mt-4">
+            <label for="file-upload" class="block text-content text-gray-700">Upload File:</label>
+            <input type="file" id="file-upload" class="mt-2 p-2 border rounded text-gray-700">
+        </div>
+        <div class="mt-4">
+            <button id="upload-button" class="bg-blue-500 text-white p-2 rounded mr-2">Upload & Show</button>
+        </div>
+    </div>
+    <script>
+        async function fetchDisplayNames() {
+            try {
+                const response = await fetch('http://{{ my_ip }}:{{ port }}/api/displaynames');
+                const displayNames = await response.json();
+                console.log(displayNames);
+                const displaySelect = document.getElementById('display-id');
+                displaySelect.innerHTML = '';
+                displayNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name.id;
+                    option.textContent = name.name;
+                    displaySelect.appendChild(option);
+                });
+            } catch (error) {
+                alert('Failed to fetch display names.');
+                console.error('Error fetching display names:', error);
+            }
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            const displaySelect = document.getElementById('display-id');
+            const selectedDisplayId = displaySelect.options[displaySelect.selectedIndex].value;
+            const selectedDisplayName = displaySelect.options[displaySelect.selectedIndex].text;
+
+            if (!file) {
+                alert('Please select a file to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('displayName', selectedDisplayName);
+            formData.append('displayId', selectedDisplayId);
+
+            try {
+                const response = await fetch('http://{{ my_ip }}:{{ port }}/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('File uploaded successfully.');
+                } else {
+                    alert('Failed to upload file.');
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('Failed to upload file.');
+            }
+        }
+
+        document.getElementById('upload-button').addEventListener('click', uploadFile);
+
+        window.addEventListener('load', () => {
+            fetchDisplayNames();
+        });
+    </script>
+</body>
+
+</html>
